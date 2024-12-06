@@ -1,0 +1,657 @@
+DevOps using Ansible: https://lex.infosysapps.com/web/en/app/toc/lex_auth_012926840225792000135/overview
+
+Playground: https://lex.infosysapps.com/web/en/app/toc/lex_auth_013031193845923840157/overview
+
+5 Days Session:
+------------------------
+1. Ansible Basics
+2. Ansible playbook
+3. Ansible Facts
+4. Ansible Tags
+5. Ansible Roles and Galaxy
+6. Order of Execution
+7. ansible Template
+8. Ansible handlers
+9. Ansible Vault
+10 Ansible Tower
+----------------------------------------------
+What? Why? How?
+
+Coding - repo - Continuous Integration - Continuous Testing -| Configuration Management Continuous Deployment |- Continuous monitor
+
+- Open source tool
+- Application deployment
+- IT automation
+
+Ansible is Environment and Configuration management Tool.
+
+Environment management : Environment management refers to the management of the infrastructure or environment where your application or services run.
+
+Configuration Management: It is an automation that ensures that the target system reaches its desired state as per the configuration made upon it
+
+- managing software installation
+- Configuring system settings
+- Deploying applications
+- managing users and groups
+---------------------------------------------------
+Configuration management tool  - Pull based ( Puppet, chef)
+                                                           - Push based ( Ansible)
+
+Pull based CMT:
+-------------------------
+Central configuration management server  - Configuration file Repo
+
+Target system - configuration management client (Agent)
+
+Push based CMT:
+-------------------------
+Ansible : (SCM server configuration management Tool)
+
+DevOps : Dev (SCM : source code Management Tool ) OPs ( SCM : server configuration management Tool)
+
+Master/control node( Playbooks, Roles, inventory file, desired config state file...)  - ---(SSH connection)----Target/host nodes
+
+Master pushes the changes to target
+Targets updates back to control node
+--------------------------------
+We can work with Ansible using Playbook and adhoc commands
+
+Adhoc commands:
+---------------------------
+faster, one time command
+
+Requirements:
+-----------------------
+1. Linux machine with root privileges
+2. Ansible
+3. Python
+
+Demo:
+--------
+Day 1:
+From Playground instruction
+-------------------------------------------
+Day 2:
+--------
+Ansible Playbook
+
+java = filename.java
+Python = filename.py
+
+Ansible Playbook = filename.yml
+
+- YAML  ( Yaml Aint markup language)
+
+Note: 
+
+Indentation is very important
+
+Starts with ---
+-----------------------------------
+Data is represented in four different ways in YAML:
+
+1. Dictionary:
+
+In programming language: dit_name ={key1:v1, key2:v2}
+
+In Yaml:
+---
+- name: dit_name
+  key1: v1
+  key2: v2
+
+2. List
+
+In programming language: List_name= [v1,v2,v3]
+
+In Yaml:
+---
+- name: List_name
+  - v1
+  - v2
+  - v3
+
+3. List in Dictionary
+
+In programming language: dit_name ={key1:v1, key2:[v2,v3]}
+
+In Yaml:
+---
+- name: dit_name
+  key1: v1
+  key2: 
+  - v2
+  - v3
+
+4. List in List: Subtasks ( one task is integrated with few smaller tasks)
+
+In programming language:  List_name= [v1,[v2,v3]]
+
+In Yaml:
+---
+- name: list_name
+  - v1
+  - [v2,v3]
+--------------------------------------------------
+How to write a playbook:
+
+1. Create a playbook:
+
+vi  nameoftheplaybook.yml
+
+2. Write playbook:
+
+name: name of play1
+hosts: provide the details of your target
+Vars: If there is any variables
+tasks:
+- name: name of task 1
+    #commands
+- name: name of task 2
+    #commands
+name: name of play2
+hosts: provide the details of your target
+Vars: If there is any variables
+- name: name of task 1
+    #commands
+- name: name of task 2
+    #commands
+	
+3. Check syntax of the playbook
+
+ansible-playbook nameoftheplaybook.yml --syntax-check
+
+4. Execute the playbook
+ansible-playbook nameoftheplaybook.yml
+
+5. Verbose
+
+ansible-playbook nameoftheplaybook.yml -vvvv
+
+Demo:
+--------
+ name: Print a text play 1
+  hosts: sg1
+  tasks:
+  - name: Print Hello world task 1
+    debug:
+      msg: " Hi! Welcome to the Ansible Session"
+  - name: Print Hello world task 2
+    debug:
+      msg: " Second day "
+- name: Print a text play 2
+  hosts: node1
+  tasks:
+  - name: Print Hello world task 1
+    debug:
+      msg: " Hi! Welcome to the Ansible Session"
+  - name: Print Hello world task 2
+    debug:
+            msg: " Second day" 
+---------------------------------------------------------------
+Variables, Conditions, Loops
+
+Variables:
+-------------
+In programming language:  Display the sum of two numbers
+
+num1 = 5
+num2 = 6
+sum = num1+num2
+print(sum)
+
+In playbooks - how to declare 
+
+num1: 5
+num2: 6
+
+jinja templating language - How to use variable inside playbook
+
+{{ variable name }}
+
+Demo:
+----------
+---
+- name: Demo for variables
+  hosts: servergroup
+  vars:
+    num1: 4
+    num2: 5
+  tasks:
+  - name: Sum of two numbers - Task 1
+    debug:
+      msg: "sum  of the two numbers are {{ num1 }} + {{ num2 }}"
+  - name: Sum of the two numbers - Task 2
+    debug:
+      msg: "Sum of two numbers are {{ num1 + num2}}"
+-------------------------------------------------------------------------
+Conditions:
+In Programming language we use:
+
+if else, AND, Not ,OR, >,<
+
+In Playbook:
+
+When ,>,<, OR, AND
+
+Demo:
+---------
+---
+- name: Demo for Conditions
+  hosts: servergroup
+  vars:
+    num1: 4
+    num2: 5
+  tasks:
+  - name: greater than
+    debug:
+      msg: "sum  of the two numbers are {{ num1 }} + {{ num2 }}"
+    when: " num1 > 3 "
+  - name: less than
+    debug:
+      msg: "Sum of two numbers are {{ num1 + num2}}"
+    when: " num2 < 4 "
+  - name: OR Condition
+    debug:
+      msg: "sum  of the two numbers are {{ num1 }} + {{ num2 }}"
+    when: " num1 > 3 or num2< 3 "
+  - name: AND condition
+    debug:
+      msg: "Sum of two numbers are {{ num1 + num2}}"
+    when: 
+      - " num2 > 4 "
+      - "num1>3"
+------------------------------------------------------------------------
+Ansible fact:
+-----------------
+henever we are executing the playbook on the target machine, ansible engine will automatically execute the setup module first
+ (before to tasks execution) and it gathers all the info about the target machine and stores it in a variable called connection variable.
+
+- ansible node1 -m setup => details of your target machine
+- ansible node1 -m setup -a "filter=*time"
+- ansible node1 -m setup -a "filter=*ansible_os_family"
+
+---
+- name: Demo for Ansible fact
+  hosts: node1
+  tasks:
+  - name: Display the OS family
+    debug:
+      msg: "{{ansible_os_family}}"
+    when: "ansible_os_family=='RedHat'"
+------------------------------------------------------------------------------------
+Day 3:
+----------
+Loops:
+----------
+In programming language: for,while, do while
+
+List = [ v1, v2, v3, v4]
+
+Iterate with elements: 
+for( int i: List){ print(i)}
+
+elements: v1,v2,v3,v4
+
+Iterate with index: 
+
+for(int i=0; i<List.length;i++){
+print(List[i])}
+
+In playbook demo:
+----------------------------
+--
+- name: Demo for loops
+  hosts: sg1
+  vars:
+    empnumbers:
+      - E123
+      - E124
+      - E125
+      - E126
+  tasks:
+  - name: Iterating with elements - 1
+    debug:
+      msg: "{{ item }}"
+    with_items:
+      - D1
+      - D2
+      - D3
+      - D4
+  - name: Iterating with elements - 2
+    debug:
+      msg: "{{ item }}"
+    with_items: " {{empnumbers}}"
+- name: Demo for loops - 2
+  hosts: sg1
+  vars:
+    empnumbers:
+      - E123
+      - E124
+      - E125
+      - E126
+  tasks:
+  - name: Iterating with index - 1
+    debug:
+      msg: "The index is{{ item.0 }} and the value {{item.1}}"
+    with_indexed_items:
+      - D1
+      - D2
+      - D3
+      - D4
+  - name: Iterating with index - 2
+    debug:
+      msg: " {{item.0 }} = {{ item.1 }}"
+    with_indexed_items: " {{empnumbers}}"
+----------------------------------------------------------------------------
+Ansible Tags:
+- Tags in play level
+- Tags in  task level
+
+1. To view all the tags:
+
+ansible-playbook loop.yml --list-tag
+
+2. To execute particular one tag
+
+ansible-playbook loop.yml --tags nameofonetag
+
+3. to execute multiple tags:
+
+ansible-playbook loop.yml --tags tag1,tag2,tag3
+
+4. To skip any tag:
+
+ansible-playbook loop.yml --skip-tag tag1,tag2
+
+Demo:
+---------
+---
+- name: Demo for Tags
+  hosts: sg1
+  vars:
+    empnumbers:
+      - E123
+      - E124
+      - E125
+      - E126
+  tags: Element
+  tasks:
+  - name: Iterating with elements - 1
+    debug:
+      msg: "{{ item }}"
+    with_items:
+      - D1
+      - D2
+      - D3
+      - D4
+    tags: ele1
+  - name: Iterating with elements - 2
+    debug:
+      msg: "{{ item }}"
+    with_items: " {{empnumbers}}"
+    tags: ele2
+- name: Demo for Tags - 2
+  hosts: sg1
+  vars:
+    empnumbers:
+      - E123
+      - E124
+      - E125
+      - E126x
+  tags: Index
+  tasks:
+  - name: Iterating with index - 1
+    debug:
+      msg: "The index is{{ item.0 }} and the value {{item.1}}"
+    with_indexed_items:
+      - D1
+      - D2
+      - D3
+      - D4
+    tags: ind1
+  - name: Iterating with index - 2
+    debug:
+      msg: "{{item.0 }} = {{ item.1 }}"
+    with_indexed_items: " {{empnumbers}}"
+    tags: ind2
+------------------------------------------------------
+Scenario:
+1. you need to install git in node1 and node 2
+2. You need to install apache 2 in node 1
+
+---
+- name: install Demo
+  hosts: sg1
+  tasks:
+  - name: install git
+    apt:
+      name: git
+      state: present
+      update_cache: yes
+- name: install Demo - 2
+  hosts: sg2
+  tasks:
+  - name: install apache 2
+    apt:
+      name: apache2
+      state: present
+      update_cache: yes
+--------------------------------------------------
+Ansible Handlers:
+----------------------
+--
+- name: install Demo
+  hosts: sg1
+  tasks:
+  - name: install git
+    apt:
+      name: git
+      state: present
+      update_cache: yes
+  - name: Configure module
+    debug:
+      msg: " Assume that configuration is done"
+    notify:
+      - restartservice
+  - name: After handlers
+    debug:
+      msg: " Handlers worked"
+  handlers:
+  - name: restartservice
+    service:
+      name: git
+      state: restarted
+-------------------------------------------------------
+Ansible Vault:
+------------------
+1.To create an encrypted file:
+
+ansible-vault create filename.extn
+
+2. To view the contents of the encrypted file:
+
+ansible-vault view filename.extn
+
+3. To edit the contents of the encrypted file:
+
+ansible-vault edit filename.extn
+
+4. To encrypt the existing file :
+
+ansible-vault encrypt filename.extn
+----------------------------------------------------------
+Privilege escalation:
+
+- Task level
+- Play level
+- Role level
+
+become, sudo, su: Escalate privileges and execute tasks as different user
+
+- name: install Demo
+  hosts: sg1
+  become: true
+
+  tasks:
+  - name: install git
+    apt:
+      name: git
+      state: present
+      update_cache: yes
+	
+- name: install Demo - 2
+  hosts: sg2
+  tasks:
+  - name: install apache 2
+    apt:
+      name: apache2
+      state: present
+      update_cache: yes
+	 become: true
+   - name: Configure module
+    debug:
+      msg: " Assume that configuration is done"
+ 
+ ------------------------------------------------------------------
+Day 4:
+
+Roles and Galaxy:
+-----------------------
+It is a way to organize and encapsulte the configuration of a specific component or function. Galaxy is repository for roles.
+
+Roles (tasks(main.yml), handlers(main.yml), templates,files, defaults, vars,meta)
+
+Rolename: InstallPackage
+-------------------------------------
+---
+- name: install git
+    apt:
+      name: git
+      state: present
+      update_cache: yes
+- name: install apache2
+    apt:
+	    name: apache2
+		state: present
+		update_cache: yes
+		
+---------------------------------------
+Playbook A:
+------------------
+---
+- name: Playbook for Role
+  hosts: node1
+  roles:
+  - InstallPackage
+  
+ -------------------------------------------------
+ [root@masternode] ~ # cd /etc/ansible
+[root@masternode] ansible # ls
+ansible.cfg  hosts  roles
+[root@masternode] ansible # cd roles
+[root@masternode] roles # ls
+[root@masternode] roles # ansible-galaxy init ip
+- Role ip was created successfully
+[root@masternode] roles # ls
+ip
+[root@masternode] roles # cd ip
+[root@masternode] ip # ls
+README.md  defaults  files  handlers  meta  tasks  templates  tests  vars
+[root@masternode] ip # cd tasks
+[root@masternode] tasks # ls
+main.yml
+[root@masternode] tasks # vi main.yml
+[root@masternode] tasks # cd ..
+[root@masternode] ip # cd
+[root@masternode] ~ # cd ..
+[root@masternode] / # cd
+[root@masternode] ~ # vi demo.yml
+[root@masternode] ~ # ansible-playbook demo.yml
+
+PLAY [Demo for Roles] *********************************************************************
+
+TASK [Gathering Facts] ********************************************************************
+ok: [node1]
+
+TASK [ip : install git] *******************************************************************
+changed: [node1]
+
+PLAY RECAP ********************************************************************************
+node1                      : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+[root@masternode] ~ # cat demo.yml
+---
+- name: Demo for Roles
+  hosts: node1
+  roles:
+    - ip
+---------------------------------------------------------------------------------------------------------
+Order of Execution:
+--------------------------
+- Role section execution
+- Task section execution
+
+If we need to add roles under the task section:
+
+import_role: It adds role statically, ansible-playbook inserts the role in the play before it gets executed. When errorr is detected, it will stop execution(no partial execution)
+
+include_role: It add roles dynamically, ansible-playbook command inserts the role in play when it reaches the include_role task during execution. If error detected, playbook execution will get abort( partial execution will be there)
+
+https://lex.infosysapps.com/web/en/viewer/web-module/lex_auth_013594002935693312201?collectionId=lex_auth_012926840225792000135&collectionType=Course&pathId=lex_auth_01350077653972582424
+------------------------------------------------------------------------
+Ansible Template:
+
+jinja 2 template
+
+Create a template:
+
+vi templatename.j2
+
+Hi {{ name }}!
+your Account Id is {{ accid}}
+your password {{ passcode}}
+
+-------------------
+Demo:
+------------
+root@masternode] ~ # vi template.j2
+[root@masternode] ~ # cat template.j2
+Hi {{ name }}!
+your Account Id is {{ accid}}
+your password {{ passcode}}
+[root@masternode] ~ # vi Demo2.yml
+[root@masternode] ~ # ansible-playbook Demo2.yml --syntax-check
+
+playbook: Demo2.yml
+[root@masternode] ~ # ansible-playbook Demo2.yml
+[WARNING]: Found variable using reserved name: name
+
+PLAY [demo for template] ****************************************************************************
+
+TASK [Gathering Facts] ******************************************************************************
+ok: [node1]
+
+TASK [replacing variables in the template] **********************************************************
+changed: [node1]
+
+PLAY RECAP ******************************************************************************************
+node1                      : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+[root@masternode] ~ # cat Demo2.yml
+---
+- name: demo for template
+  hosts: node1
+  vars:
+    name: Swati
+    accid: 34567
+    passcode: infy@
+  tasks:
+  - name: replacing variables in the template
+    template:
+      src: template.j2
+      dest: user.txt
+---------------------------------------------------------------
+
+
+
